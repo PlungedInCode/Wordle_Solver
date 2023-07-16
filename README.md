@@ -1,0 +1,2 @@
+# wordly
+Wordly AI
