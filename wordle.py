@@ -1,23 +1,29 @@
 from colorama import Fore, Style
-from random_word import Wordnik
 import nltk
+import random
+import csv
+
 
 class WordlyGame:
-    def __init__(self: str) -> None:
+    def __init__(self: str, attempts=6, letters=5) -> None:
         self.Validator = InputValidator()
         self.Generator = HiddenWordGenerator()
-        self.attempts = 6
+        self.attempts = attempts
+        self.letters = letters
         self.guessed_words = []
         self.win = False
     
-    def play(self):
+    def play(self, player_input=input):
         self.game_instruction()
         while self.attempts > 0 and not self.win:
             print(f"Attempts left {self.attempts}")
-            guess = input("Enter your guess: ").strip().lower()
+            print("Enter your guess: ")
+            guess = player_input().strip().lower()
 
             if guess == "/show_attempts":
-                print("Guessed words :\n", "\n".join(self.guessed_words))
+                # print("Guessed words :\n", "\n".join(self.guessed_words))
+                for i in self.guessed_words:
+                    print(i)
                 continue
             
             if not self.check_guess(guess):
@@ -28,8 +34,7 @@ class WordlyGame:
             
             checked_guess = self.check(guess)
             self.guessed_words.append(checked_guess)
-            print(checked_guess)
-
+            print(checked_guess[0])
             self.attempts -= 1
         
         if not self.win:
@@ -37,7 +42,6 @@ class WordlyGame:
             print(f"The hidden word was: {self.Generator.hidden_word}")
         else:
             print("Congratulations! You guessed the word.")
-    
 
     def check_guess(self, guess):
         if not self.Validator.is_valid_guess(guess):
@@ -50,18 +54,21 @@ class WordlyGame:
             print("Please try new word")
             return False
         return True
-    
 
     def check(self, guess):
         checked_guess = ""
+        colors = ""
         for i in range(5):
             if guess[i] == self.Generator.hidden_word[i]:
                 checked_guess += (Fore.GREEN + guess[i] + Style.RESET_ALL)
+                colors += 'g'
             elif guess[i] in self.Generator.hidden_word:
                 checked_guess += (Fore.YELLOW + guess[i] + Style.RESET_ALL)
+                colors += 'y'
             else:
                 checked_guess += (Fore.RED + guess[i] + Style.RESET_ALL)
-        return checked_guess
+                colors += 'r'
+        return checked_guess, guess, colors
 
     @staticmethod
     def game_instruction():
@@ -81,16 +88,24 @@ class WordlyGame:
 class HiddenWordGenerator:
     # TODO : Build Wordnik with my own API key
     def __init__(self) -> None:
-        self.Generator = Wordnik()
-        self.hidden_word = self.generate_hidden_word()
+        # self.Generator = Wordnik()
+        self.hidden_word = self.get_random_word_from_dict()
 
-    def generate_hidden_word(self) -> str:
-        word = self.Generator.get_random_word(hasDictionaryDef="true", includePartOfSpeech="noun", 
-                                              minDictionaryCount=3, minLength=5, maxLength=5)
-        while word is None or '-' in word:
-            word = self.Generator.get_random_word(hasDictionaryDef="true", includePartOfSpeech="noun", 
-                                                  minDictionaryCount=3, minLength=5, maxLength=5)
-        return word.lower()
+    @staticmethod
+    def get_random_word_from_dict(dict_path='wordleDict.csv') -> str:
+        with open(dict_path, 'r') as file:
+            reader = csv.reader(file)
+            words = list(reader)
+            random_word = random.choice(words)[0]
+        return random_word
+
+    # def generate_hidden_word(self) -> str:
+    #     word = self.Generator.get_random_word(hasDictionaryDef="true", includePartOfSpeech="noun",
+    #                                           minDictionaryCount=3, minLength=5, maxLength=5)
+    #     while word is None or '-' in word:
+    #         word = self.Generator.get_random_word(hasDictionaryDef="true", includePartOfSpeech="noun",
+    #                                               minDictionaryCount=3, minLength=5, maxLength=5)
+    #     return word.lower()
 
 
 class InputValidator:
