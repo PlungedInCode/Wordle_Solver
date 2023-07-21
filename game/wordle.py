@@ -1,6 +1,11 @@
+import os
+from dotenv import load_dotenv
 from colorama import Fore, Style
 import random
 import csv
+
+load_dotenv()
+DICT_PATH = os.getenv('DICT_PATH')
 
 
 class WordlyGame:
@@ -11,31 +16,37 @@ class WordlyGame:
         self.letters = letters
         self.guessed_words = []
         self.win = False
-    
+
     def play(self, player_input=input):
         # self.game_instruction()
         while self.attempts > 0 and not self.win:
             print(f"Attempts left {self.attempts}")
             print("Enter your guess: ")
-            guess = player_input().strip().lower()
+            try:
+                guess = player_input().strip().lower()
+            except Exception as e:
+                print(f"An Error occurred while guessing word : {e}")
+                self.attempts = 6
+                self.win = 1
+                break
 
             if guess == "/show_attempts":
                 # print("Guessed words :\n", "\n".join(self.guessed_words))
                 for i in self.guessed_words:
                     print(i)
                 continue
-            
+
             if not self.check_guess(guess):
                 continue
 
             if guess == self.Generator.hidden_word:
                 self.win = True
-            
+
             checked_guess = self.check(guess)
             self.guessed_words.append(checked_guess)
             print(checked_guess[0])
             self.attempts -= 1
-        
+
         if not self.win:
             print("Game over. You ran out of attempts.")
             print(f"The hidden word was: {self.Generator.hidden_word}")
@@ -89,7 +100,7 @@ class HiddenWordGenerator:
         self.hidden_word = self.get_random_word_from_dict()
 
     @staticmethod
-    def get_random_word_from_dict(dict_path='wordleDict.csv') -> str:
+    def get_random_word_from_dict(dict_path=DICT_PATH) -> str:
         with open(dict_path, 'r') as file:
             reader = csv.reader(file)
             words = list(reader)
@@ -99,7 +110,7 @@ class HiddenWordGenerator:
 
 class InputValidator:
     @staticmethod
-    def is_in_dict(word, dict_path='wordleDict.csv') -> bool:
+    def is_in_dict(word, dict_path=DICT_PATH) -> bool:
         with open(dict_path, 'r') as file:
             reader = csv.reader(file)
             words = list(reader)

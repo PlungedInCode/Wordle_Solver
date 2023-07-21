@@ -1,14 +1,20 @@
+import os
+from dotenv import load_dotenv
 import pandas as pd
 import random
 
+load_dotenv()
+DICT_PATH = os.getenv('DICT_PATH')
+
+
 class Agent:
-    def __init__(self, game, f_name='wordleDict.csv') -> None:
+    def __init__(self, game, dict_path=DICT_PATH) -> None:
         self.game = game
-        self.vowels = ['A','E','I','O','U','Y']
-        word_dict = pd.read_csv(f_name)
-        word_dict = word_dict[word_dict['words'].str.len()==5]
-        word_dict['words'] = word_dict['words'].str.upper() #Convert all words to uppercase
-        word_dict['v-count'] = word_dict['words'].apply(lambda x: ''.join(set(x))).str.count('|'.join(self.vowels)) #Count amount of vowels in words
+        self.vowels = ['A', 'E', 'I', 'O', 'U', 'Y']
+        word_dict = pd.read_csv(dict_path)
+        word_dict = word_dict[word_dict['words'].str.len() == self.game.letters]
+        word_dict['words'] = word_dict['words'].str.upper()
+        word_dict['v-count'] = word_dict['words'].apply(lambda x: ''.join(set(x))).str.count('|'.join(self.vowels))
         self.word_dict = word_dict
         self.green_letters = ['' for _ in range(game.letters)]
         self.yellow_letters = {}
@@ -86,4 +92,3 @@ class Agent:
             return random.choice(mv_dic['words'].tolist())
         else:
             raise Exception("There's no such word in our dict")
-
