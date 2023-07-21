@@ -1,5 +1,4 @@
 from colorama import Fore, Style
-import nltk
 import random
 import csv
 
@@ -14,7 +13,7 @@ class WordlyGame:
         self.win = False
     
     def play(self, player_input=input):
-        self.game_instruction()
+        # self.game_instruction()
         while self.attempts > 0 and not self.win:
             print(f"Attempts left {self.attempts}")
             print("Enter your guess: ")
@@ -47,8 +46,8 @@ class WordlyGame:
         if not self.Validator.is_valid_guess(guess):
             print("Invalid guess. Please enter a 5-letter word in english.")
             return False
-        elif not self.Validator.is_english_word(guess):
-            print("There's no such word in English.")
+        elif not self.Validator.is_in_dict(guess):
+            print("There's no such word in our Dict.")
             return False
         elif self.check(guess) in self.guessed_words:
             print("Please try new word")
@@ -86,9 +85,7 @@ class WordlyGame:
 
 
 class HiddenWordGenerator:
-    # TODO : Build Wordnik with my own API key
     def __init__(self) -> None:
-        # self.Generator = Wordnik()
         self.hidden_word = self.get_random_word_from_dict()
 
     @staticmethod
@@ -99,23 +96,14 @@ class HiddenWordGenerator:
             random_word = random.choice(words)[0]
         return random_word
 
-    # def generate_hidden_word(self) -> str:
-    #     word = self.Generator.get_random_word(hasDictionaryDef="true", includePartOfSpeech="noun",
-    #                                           minDictionaryCount=3, minLength=5, maxLength=5)
-    #     while word is None or '-' in word:
-    #         word = self.Generator.get_random_word(hasDictionaryDef="true", includePartOfSpeech="noun",
-    #                                               minDictionaryCount=3, minLength=5, maxLength=5)
-    #     return word.lower()
-
 
 class InputValidator:
-    def __init__(self) -> None:
-        nltk.download('words') 
-
     @staticmethod
-    def is_english_word(word):
-        english_words = set(nltk.corpus.words.words())
-        return word.lower() in english_words
+    def is_in_dict(word, dict_path='wordleDict.csv') -> bool:
+        with open(dict_path, 'r') as file:
+            reader = csv.reader(file)
+            words = list(reader)
+            return [word] in words
 
     @staticmethod
     def is_valid_guess(guess: str) -> bool:
