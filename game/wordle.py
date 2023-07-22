@@ -10,18 +10,20 @@ DICT_PATH = os.getenv('DICT_PATH')
 
 class WordlyGame:
     def __init__(self: str, attempts=6, letters=5) -> None:
+        self.attempts = attempts
         self.Validator = InputValidator()
         self.Generator = HiddenWordGenerator()
-        self.attempts = attempts
         self.letters = letters
         self.guessed_words = []
         self.win = False
 
-    def play(self, player_input=input):
-        # self.game_instruction()
+    def play(self, player_input=input, helper=False):
         while self.attempts > 0 and not self.win:
             print(f"Attempts left {self.attempts}")
-            print("Enter your guess: ")
+            if helper:
+                print("Try: ", end=" ")
+            else:
+                print("Enter your guess: ")
             try:
                 guess = player_input().strip().lower()
             except Exception as e:
@@ -31,30 +33,36 @@ class WordlyGame:
                 break
 
             if guess == "/show_attempts":
-                # print("Guessed words :\n", "\n".join(self.guessed_words))
                 for i in self.guessed_words:
-                    print(i)
+                    print(i[0])
                 continue
 
             if not self.check_guess(guess):
                 continue
 
-            if guess == self.Generator.hidden_word:
+            if guess == self.Generator.hidden_word and not helper:
                 self.win = True
 
-            checked_guess = self.check(guess)
+            if helper:
+                checked_guess = self.player_check(guess)
+            else:
+                checked_guess = self.check(guess)
+
             self.guessed_words.append(checked_guess)
-            print(checked_guess[0])
+
+            if not helper:
+                print(checked_guess[0])
             self.attempts -= 1
 
         if not self.win:
             print("Game over. You ran out of attempts.")
-            print(f"The hidden word was: {self.Generator.hidden_word}")
+            if not helper:
+                print(f"The hidden word was: {self.Generator.hidden_word}")
         else:
             print("Congratulations! You guessed the word.")
 
     def check_guess(self, guess):
-        if not self.Validator.is_valid_guess(guess):
+        if not self.Validator.is_valid_guess(guess, self.letters):
             print("Invalid guess. Please enter a 5-letter word in english.")
             return False
         elif not self.Validator.is_in_dict(guess):
@@ -65,7 +73,7 @@ class WordlyGame:
             return False
         return True
 
-    def check(self, guess):
+    def check(self, guess): 
         checked_guess = ""
         colors = ""
         for i in range(5):
@@ -78,6 +86,15 @@ class WordlyGame:
             else:
                 checked_guess += (Fore.RED + guess[i] + Style.RESET_ALL)
                 colors += 'r'
+        return checked_guess, guess, colors
+    
+    def player_check(self, guess):
+        print(guess)
+        print("Enter colors, r - red letters, y - yellow letters, g - green letters")
+        checked_guess = guess
+        colors = input()
+        if colors == "ggggg":
+            self.win = True
         return checked_guess, guess, colors
 
     @staticmethod
@@ -117,5 +134,5 @@ class InputValidator:
             return [word] in words
 
     @staticmethod
-    def is_valid_guess(guess: str) -> bool:
-        return len(guess) == 5 and guess.isalpha()
+    def is_valid_guess(guess: str, letters) -> bool:
+        return len(guess) == letters and guess.isalpha()
