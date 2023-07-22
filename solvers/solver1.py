@@ -68,7 +68,6 @@ class Agent:
                 self.word_dict = self.word_dict[self.word_dict['words'].str[i] == ch]
 
     def make_guess(self):
-
         self.get_board_state()
         if len(self.red_letters) > 0:
             self.delete_red_letters()
@@ -77,7 +76,7 @@ class Agent:
         self.select_green_letters()
 
         self.word_dict['w-score'] = [0] * len(self.word_dict)
-        if len(self.word_dict) > 5:
+        if len(self.word_dict) > self.game.letters:
             self.calculate_letter_prob()
         
         for i in range(self.game.letters):
